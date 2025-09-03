@@ -1,10 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>🌈 Дитячий API</title>
+    <link rel="stylesheet" href="../CSS/style.css">
 </head>
 <body>
+    <div class="container">
+        <h1>🌈 Веселий API для Дітей🎈</h1>
 
+        <div class="section">
+            <h3>🎲 Випадкові речі</h3>
+            <button onclick="getRandomAnimal()">Випадкова тварина</button>
+            <button onclick="getRandomColor()">Випадковий колір</button>
+            <button onclick="getJoke()">Смішний жарт</button>
+            <div id="random-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="section">
+            <h3>🧮 Калькулятор</h3>
+            <input type="number" id="num1" placeholder="Перше число">
+            <input type="number" id="num2" placeholder="Друге число">
+            <button onclick="calculate()">Порахувати</button>
+            <div id="calc-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="section">
+            <h3>👋 Привітання</h3>
+            <input type="text" id="name" placeholder="Твоє ім'я">
+            <input type="number" id="age" placeholder="Твій вік">
+            <button onclick="getGreeting()">Привітати</button>
+            <div id="greeting-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="section">
+            <h3>🔤 Лічильник букв</h3>
+            <input type="text" id="word" placeholder="Напиши слово">
+            <button onclick="countLetters()">Порахувати букви</button>
+            <div id="letters-result" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script src="../JS/script.js"></script>
 </body>
 </html>
