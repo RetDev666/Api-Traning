@@ -1,7 +1,13 @@
-from flask import Flask, render_template_string, request, jsonify
+import os.path
+
+from flask import Flask, request, jsonify, render_template
 import random
 
-app = Flask(__name__)
+from werkzeug.utils import send_from_directory
+
+app = Flask(__name__,
+            template_folder='../Web Site/HTML',    # Виправлено: без коми
+            static_folder='../Web Site')           # Шлях до статичних даних
 
 # Дані
 animals = ["🐱 Кіт", "🐶 Собака", "🐸 Жаба", "🐰 Заєць", "🦊 Лисиця"]
@@ -12,17 +18,33 @@ jokes = [
     "Чому риба не грає теніс? Боїться сітки! 🐟"
 ]
 
-# HTML шаблон
-HTML = '''
-
-'''
-
-
+def check_files():
+    template_path = os.path.join(os.path.dirname(__file__), '../Web Site/HTML')
+    static_path = os.path.join(os.path.dirname(__file__), '../Web Site/CSS')
+    if not os.path.exists(template_path, static_path):
+        print(f"❌ ПОМИЛКА: Файл index.html або style.css не знайдено за шляхом: {template_path}")
+        print("📁 Переконайтеся, що структура папок правильна:")
+        print("   Web Site/")
+        print("   ├── HTML/")
+        print("   │   └── index.html")
+        print("   ├── CSS/")
+        print("   │   └── style.css")
+        print("   └── JS/")
+        return False
+    return True
 # Головна сторінка
 @app.route('/')
 def home():
-    return render_template_string(HTML)
+    return render_template('index.html')
 
+# Маршрутищатори для статичних файлів
+@app.route('/CSS/<path:filename>')
+def css_files(filename):
+    return send_from_directory('../Web Site/CSS', filename)
+
+@app.route('/JS/<path:filename>')
+def js_files(filename):
+    return send_from_directory('../Web Site/JS', filename)
 
 # API endpoints
 @app.route('/api/animal')
