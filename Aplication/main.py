@@ -3,11 +3,12 @@ import os.path
 from flask import Flask, request, jsonify, render_template
 import random
 
+from idna.idnadata import scripts
 from werkzeug.utils import send_from_directory
 
 app = Flask(__name__,
-            template_folder='../Web Site/HTML',    # Виправлено: без коми
-            static_folder='../Web Site/CSS')       # Шлях до статичних даних
+            template_folder='../Templates',    # Виправлено: без коми
+            static_folder='../Static')       # Шлях до статичних даних
 
 # Дані
 animals = ["🐱 Кіт", "🐶 Собака", "🐸 Жаба", "🐰 Заєць", "🦊 Лисиця"]
@@ -19,17 +20,20 @@ jokes = [
 ]
 
 def check_files():
-    template_path = os.path.join(os.path.dirname(__file__), '../Web Site/HTML')
-    static_path = os.path.join(os.path.dirname(__file__), '../Web Site/CSS')
+    template_path = os.path.join(os.path.dirname(__file__), '../Templates')
+    static_path = os.path.join(os.path.dirname(__file__), '../Static')
     if not os.path.exists(template_path, static_path):
         print(f"❌ ПОМИЛКА: Файл index.html або style.css не знайдено за шляхом: {template_path}")
         print("📁 Переконайтеся, що структура папок правильна:")
-        print("   Web Site/")
-        print("   ├── HTML/")
-        print("   │   └── index.html")
+        print("   Templates/")
+        print("   ├── index.html")
+        print("   │ ")
+        print("   ├── Static/")
+        print("   │")
         print("   ├── CSS/")
         print("   │   └── style.css")
-        print("   └── JS/")
+        print("   ├── JS/")
+        print("   │   └── script.js")
         return False
     return True
 # Головна сторінка
@@ -40,11 +44,11 @@ def home():
 # Маршрутищатори для статичних файлів
 @app.route('/CSS/<path:filename>')
 def css_files(filename):
-    return send_from_directory('../Web Site/CSS', filename)
+    return send_from_directory('../Static/CSS', filename)
 
 @app.route('/JS/<path:filename>')
 def js_files(filename):
-    return send_from_directory('../Web Site/JS', filename)
+    return send_from_directory('../Static/JS', filename)
 
 # API endpoints
 @app.route('/api/animal')
@@ -78,17 +82,19 @@ def calculate():
 
 @app.route('/api/greeting', methods=['POST'])
 def getGreeting():
-    data = request.json
-    name = data['name']
-    age = data.get('age', 0)
+    try:
+        data = request.json
+        name = data['name']
+        age = data.get('age', 0)
 
-    if age > 0:
-        message = f"👋 Привіт, {name}! Тобі {age} років - це чудово! 🎈"
-    else:
-        message = f"👋 Привіт, {name}! Радий тебе бачити! 😊"
+        if age > 0:
+            message = f"👋 Привіт, {name}! Тобі {age} років - це чудово! 🎈"
+        else:
+            message = f"👋 Привіт, {name}! Радий тебе бачити! 😊"
 
-    return jsonify({"message": message})
-
+        return jsonify({"message": message})
+    except KeyError as e:
+        return  jsonify({"error": "Не вказано ім'я"}), 400
 
 @app.route('/api/letters', methods=['POST'])
 def count_letters():
