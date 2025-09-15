@@ -7,7 +7,7 @@ from werkzeug.utils import send_from_directory
 
 app = Flask(__name__,
             template_folder='../Web Site/HTML',    # Виправлено: без коми
-            static_folder='../Web Site')           # Шлях до статичних даних
+            static_folder='../Web Site/CSS')       # Шлях до статичних даних
 
 # Дані
 animals = ["🐱 Кіт", "🐶 Собака", "🐸 Жаба", "🐰 Заєць", "🦊 Лисиця"]
@@ -77,7 +77,7 @@ def calculate():
 
 
 @app.route('/api/greeting', methods=['POST'])
-def greeting():
+def getGreeting():
     data = request.json
     name = data['name']
     age = data.get('age', 0)
