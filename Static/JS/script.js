@@ -80,6 +80,50 @@ function calculate() {
     .catch(error => showResult('calc-result', '❌ Помилка: ' + error.message));
 }
 
+function mines() {
+    const num3 = document.getElementById('num3').value;
+    const num4 = document.getElementById('num4').value;
+
+    if (!num3 || !num4) {
+        showResult('mines-result2', '❌ Введи обидва числа!');
+        return;
+    }
+
+    // Перевіряємо, чи є числа дійсно числами
+    const number3 = parseInt(num3);
+    const number4 = parseInt(num4);
+
+    if (isNaN(number3) || isNaN(number4)) {
+        showResult('mines-result2', '❌ Введи правильні числа!');
+        return;
+    }
+
+    fetch('/api/mines', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            num3: number3,
+            num4: number4
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.error) {
+            showResult('mines-result2', '❌ ' + data.error);
+        } else {
+            showResult('mines-result2', data.message);
+        }
+    })
+    .catch(error => showResult('mines-result2', '❌ Помилка: ' + error.message));
+}
+
 function getGreeting() {
     const name = document.getElementById('name').value;
     const age = document.getElementById('age').value;

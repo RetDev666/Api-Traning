@@ -104,6 +104,25 @@ def calculate():
     except Exception as e:
         return jsonify({"error": "Помилка в обчисленні"}), 400
 
+@app.route('/api/mines', methods=['POST'])
+def mines():
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"error": "Не надіслано даних"}), 400
+
+        num3 = data.get('num3')
+        num4 = data.get('num4')
+
+        if num3 is None or num4 is None:
+            return jsonify({"error": "Потрібно вказати обидва числа"}), 400
+
+        result2 = num3 - num4
+        return jsonify({
+            "message": f"🧮 {num3} - {num4} = {result2} ✨"
+        })
+    except Exception as e:
+        return jsonify({"error": "Помилка в обчисленні"}), 400
 
 @app.route('/api/greeting', methods=['POST'])
 def getGreeting():
