@@ -1,14 +1,11 @@
 import os.path
-
 from flask import Flask, request, jsonify, render_template
 import random
-
-from idna.idnadata import scripts
 from werkzeug.utils import send_from_directory
 
 app = Flask(__name__,
-            template_folder='../Templates',    # Виправлено: без коми
-            static_folder='../Static')       # Шлях до статичних даних
+            template_folder='../Templates',
+            static_folder='../Static')
 
 # Дані
 animals = ["🐱 Кіт", "🐶 Собака", "🐸 Жаба", "🐰 Заєць", "🦊 Лисиця"]
@@ -19,36 +16,54 @@ jokes = [
     "Чому риба не грає теніс? Боїться сітки! 🐟"
 ]
 
+
 def check_files():
+    """Перевірка існування необхідних файлів та папок"""
     template_path = os.path.join(os.path.dirname(__file__), '../Templates')
     static_path = os.path.join(os.path.dirname(__file__), '../Static')
-    if not os.path.exists(template_path, static_path):
-        print(f"❌ ПОМИЛКА: Файл index.html або style.css не знайдено за шляхом: {template_path}")
+
+    # Перевіряємо кожен шлях окремо
+    if not os.path.exists(template_path):
+        print(f"❌ ПОМИЛКА: Папка Templates не знайдена: {template_path}")
+        return False
+
+    if not os.path.exists(static_path):
+        print(f"❌ ПОМИЛКА: Папка Static не знайдена: {static_path}")
+        return False
+
+    # Перевіряємо index.html
+    index_html = os.path.join(template_path, 'index.html')
+    if not os.path.exists(index_html):
+        print(f"❌ ПОМИЛКА: Файл index.html не знайдено: {index_html}")
         print("📁 Переконайтеся, що структура папок правильна:")
         print("   Templates/")
-        print("   ├── index.html")
-        print("   │ ")
-        print("   ├── Static/")
-        print("   │")
+        print("   └── index.html")
+        print("   Static/")
         print("   ├── CSS/")
         print("   │   └── style.css")
-        print("   ├── JS/")
-        print("   │   └── script.js")
+        print("   └── JS/")
+        print("       └── script.js")
         return False
+
     return True
+
+
 # Головна сторінка
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# Маршрутищатори для статичних файлів
+
+# Маршрути для статичних файлів
 @app.route('/CSS/<path:filename>')
 def css_files(filename):
     return send_from_directory('../Static/CSS', filename)
 
+
 @app.route('/JS/<path:filename>')
 def js_files(filename):
     return send_from_directory('../Static/JS', filename)
+
 
 # API endpoints
 @app.route('/api/animal')
@@ -71,20 +86,36 @@ def joke():
 
 @app.route('/api/calculate', methods=['POST'])
 def calculate():
-    data = request.json
-    num1 = data['num1']
-    num2 = data['num2']
-    result = num1 + num2
-    return jsonify({
-        "message": f"🧮 {num1} + {num2} = {result} ✨"
-    })
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"error": "Не надіслано даних"}), 400
+
+        num1 = data.get('num1')
+        num2 = data.get('num2')
+
+        if num1 is None or num2 is None:
+            return jsonify({"error": "Потрібно вказати обидва числа"}), 400
+
+        result = num1 + num2
+        return jsonify({
+            "message": f"🧮 {num1} + {num2} = {result} ✨"
+        })
+    except Exception as e:
+        return jsonify({"error": "Помилка в обчисленні"}), 400
 
 
 @app.route('/api/greeting', methods=['POST'])
 def getGreeting():
     try:
         data = request.json
-        name = data['name']
+        if not data:
+            return jsonify({"error": "Не надіслано даних"}), 400
+
+        name = data.get('name')
+        if not name:
+            return jsonify({"error": "Не вказано ім'я"}), 400
+
         age = data.get('age', 0)
 
         if age > 0:
@@ -93,28 +124,44 @@ def getGreeting():
             message = f"👋 Привіт, {name}! Радий тебе бачити! 😊"
 
         return jsonify({"message": message})
-    except KeyError as e:
-        return  jsonify({"error": "Не вказано ім'я"}), 400
+    except Exception as e:
+        return jsonify({"error": "Помилка сервера"}), 500
+
 
 @app.route('/api/letters', methods=['POST'])
 def count_letters():
-    data = request.json
-    word = data['word']
-    count = len(word)
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"error": "Не надіслано даних"}), 400
 
-    if count == 1:
-        message = f"🔤 В слові '{word}' всього 1 буква!"
-    elif count < 5:
-        message = f"🔤 В слові '{word}' {count} букви - коротке слово!"
-    elif count < 10:
-        message = f"🔤 В слові '{word}' {count} букв - середнє слово!"
-    else:
-        message = f"🔤 Вау! В слові '{word}' аж {count} букв - довжелезне слово! 🤯"
+        word = data.get('word')
+        if not word:
+            return jsonify({"error": "Не вказано слово"}), 400
 
-    return jsonify({"message": message})
+        count = len(word)
+
+        if count == 1:
+            message = f"🔤 В слові '{word}' всього 1 буква!"
+        elif count < 5:
+            message = f"🔤 В слові '{word}' {count} букви - коротке слово!"
+        elif count < 10:
+            message = f"🔤 В слові '{word}' {count} букв - середнє слово!"
+        else:
+            message = f"🔤 Вау! В слові '{word}' аж {count} букв - довжелезне слово! 🤯"
+
+        return jsonify({"message": message})
+    except Exception as e:
+        return jsonify({"error": "Помилка сервера"}), 500
 
 
 if __name__ == '__main__':
     print("🚀 Запускаю дитячий сайт...")
-    print("🌐 Відкрий: http://localhost:5000")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+
+    # Перевіряємо файли перед запуском
+    if check_files():
+        print("✅ Всі файли на місці!")
+        print("🌐 Відкрий: http://localhost:5000")
+        app.run(debug=True, host='0.0.0.0', port=5000)
+    else:
+        print("❌ Помилка запуску: не всі файли знайдено")
