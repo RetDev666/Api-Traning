@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌈 Дитячий API</title>
+    <link rel="stylesheet" href="../Static/CSS/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌈 Веселий API для Дітей 🎈</h1>
+            <p>Грайся з API та дізнавайся цікаві речі!</p>
+        </header>
+
+        <main>
+            <section class="section">
+                <h3>🎲 Випадкові речі</h3>
+                <div class="button-group">
+                    <button onclick="getRandomAnimal()">🐱 Випадкова тварина</button>
+                    <button onclick="getRandomColor()">🌈 Випадковий колір</button>
+                    <button onclick="getJoke()">😂 Смішний жарт</button>
+                </div>
+                <div id="random-result" class="result" style="display:none;"></div>
+            </section>
+
+            <section class="section">
+                <h3>🧮 Калькулятор</h3>
+                <div class="input-group">
+                    <input type="number" id="num1" placeholder="Перше число" min="-1000" max="1000">
+                    <span class="operator">+</span>
+                    <input type="number" id="num2" placeholder="Друге число" min="-1000" max="1000">
+                    <button onclick="calculate()">= Порахувати</button>
+                </div>
+                <div id="calc-result" class="result" style="display:none;"></div>
+            </section>
+
+            <section class="section">
+                <h3>👋 Привітання</h3>
+                <div class="input-group">
+                    <input type="text" id="name" placeholder="Твоє ім'я" maxlength="50">
+                    <input type="number" id="age" placeholder="Твій вік (необов'язково)" min="1" max="150">
+                    <button onclick="getGreeting()">👋 Привітати</button>
+                </div>
+                <div id="greeting-result" class="result" style="display:none;"></div>
+            </section>
+
+            <section class="section">
+                <h3>🔤 Лічильник букв</h3>
+                <div class="input-group">
+                    <input type="text" id="word" placeholder="Напиши слово або речення" maxlength="100">
+                    <button onclick="countLetters()">🔢 Порахувати букви</button>
+                </div>
+                <div id="letters-result" class="result" style="display:none;"></div>
+            </section>
+        </main>
+
+        <footer>
+            <p>💡 Натисни Enter в полях вводу, щоб швидко отримати результат!</p>
+        </footer>
+    </div>
+
+    <script src="../Static/JS/script.js"></script>
+</body>
+</html>

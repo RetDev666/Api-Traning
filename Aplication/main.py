@@ -1,7 +1,11 @@
-from flask import Flask, render_template_string, request, jsonify
+import os.path
+from flask import Flask, request, jsonify, render_template
 import random
+from werkzeug.utils import send_from_directory
 
-app = Flask(__name__)
+app = Flask(__name__,
+            template_folder='../Templates',
+            static_folder='../Static')
 
 # Дані
 animals = ["🐱 Кіт", "🐶 Собака", "🐸 Жаба", "🐰 Заєць", "🦊 Лисиця"]
@@ -12,186 +16,53 @@ jokes = [
     "Чому риба не грає теніс? Боїться сітки! 🐟"
 ]
 
-# HTML шаблон
-HTML = '''
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <title>🌈 Дитячий API</title>
-    <style>
-        body {
-            font-family: Comic Sans MS, cursive;
-            background: linear-gradient(45deg, #ff9a9e, #fecfef, #fecfef);
-            margin: 0;
-            padding: 20px;
-            color: #333;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        h1 { text-align: center; color: #ff6b6b; font-size: 2.5em; }
-        .section {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            border: 3px solid #ff6b6b;
-        }
-        input, button {
-            padding: 12px;
-            border: 2px solid #ff6b6b;
-            border-radius: 10px;
-            font-size: 16px;
-            margin: 5px;
-        }
-        input { width: 200px; }
-        button {
-            background: #ff6b6b;
-            color: white;
-            cursor: pointer;
-            border: none;
-            font-weight: bold;
-        }
-        button:hover { background: #ff5252; }
-        .result {
-            background: #e8f5e8;
-            border: 2px solid #4caf50;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 10px 0;
-            font-size: 1.2em;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🌈 Веселий API для Дітей🎈</h1>
 
-        <div class="section">
-            <h3>🎲 Випадкові речі</h3>
-            <button onclick="getRandomAnimal()">Випадкова тварина</button>
-            <button onclick="getRandomColor()">Випадковий колір</button>
-            <button onclick="getJoke()">Смішний жарт</button>
-            <div id="random-result" class="result" style="display:none;"></div>
-        </div>
+def check_files():
+    """Перевірка існування необхідних файлів та папок"""
+    template_path = os.path.join(os.path.dirname(__file__), '../Templates')
+    static_path = os.path.join(os.path.dirname(__file__), '../Static')
 
-        <div class="section">
-            <h3>🧮 Калькулятор</h3>
-            <input type="number" id="num1" placeholder="Перше число">
-            <input type="number" id="num2" placeholder="Друге число">
-            <button onclick="calculate()">Порахувати</button>
-            <div id="calc-result" class="result" style="display:none;"></div>
-        </div>
+    # Перевіряємо кожен шлях окремо
+    if not os.path.exists(template_path):
+        print(f"❌ ПОМИЛКА: Папка Templates не знайдена: {template_path}")
+        return False
 
-        <div class="section">
-            <h3>👋 Привітання</h3>
-            <input type="text" id="name" placeholder="Твоє ім'я">
-            <input type="number" id="age" placeholder="Твій вік">
-            <button onclick="getGreeting()">Привітати</button>
-            <div id="greeting-result" class="result" style="display:none;"></div>
-        </div>
+    if not os.path.exists(static_path):
+        print(f"❌ ПОМИЛКА: Папка Static не знайдена: {static_path}")
+        return False
 
-        <div class="section">
-            <h3>🔤 Лічильник букв</h3>
-            <input type="text" id="word" placeholder="Напиши слово">
-            <button onclick="countLetters()">Порахувати букви</button>
-            <div id="letters-result" class="result" style="display:none;"></div>
-        </div>
-    </div>
+    # Перевіряємо index.html
+    index_html = os.path.join(template_path, 'index.html')
+    if not os.path.exists(index_html):
+        print(f"❌ ПОМИЛКА: Файл index.html не знайдено: {index_html}")
+        print("📁 Переконайтеся, що структура папок правильна:")
+        print("   Templates/")
+        print("   └── index.html")
+        print("   Static/")
+        print("   ├── CSS/")
+        print("   │   └── style.css")
+        print("   └── JS/")
+        print("       └── script.js")
+        return False
 
-    <script>
-        function getRandomAnimal() {
-            fetch('/api/animal')
-                .then(response => response.json())
-                .then(data => showResult('random-result', data.message));
-        }
-
-        function getRandomColor() {
-            fetch('/api/color')
-                .then(response => response.json())
-                .then(data => showResult('random-result', data.message));
-        }
-
-        function getJoke() {
-            fetch('/api/joke')
-                .then(response => response.json())
-                .then(data => showResult('random-result', data.message));
-        }
-
-        function calculate() {
-            const num1 = document.getElementById('num1').value;
-            const num2 = document.getElementById('num2').value;
-
-            if (!num1 || !num2) {
-                showResult('calc-result', '❌ Введи обидва числа!');
-                return;
-            }
-
-            fetch('/api/calculate', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({num1: parseInt(num1), num2: parseInt(num2)})
-            })
-            .then(response => response.json())
-            .then(data => showResult('calc-result', data.message));
-        }
-
-        function getGreeting() {
-            const name = document.getElementById('name').value;
-            const age = document.getElementById('age').value;
-
-            if (!name) {
-                showResult('greeting-result', '❌ Напиши своє ім\'я!');
-                return;
-            }
-
-            fetch('/api/greeting', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({name: name, age: age ? parseInt(age) : 0})
-            })
-            .then(response => response.json())
-            .then(data => showResult('greeting-result', data.message));
-        }
-
-        function countLetters() {
-            const word = document.getElementById('word').value;
-
-            if (!word) {
-                showResult('letters-result', '❌ Напиши якесь слово!');
-                return;
-            }
-
-            fetch('/api/letters', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({word: word})
-            })
-            .then(response => response.json())
-            .then(data => showResult('letters-result', data.message));
-        }
-
-        function showResult(elementId, message) {
-            const element = document.getElementById(elementId);
-            element.innerHTML = message;
-            element.style.display = 'block';
-        }
-    </script>
-</body>
-</html>
-'''
+    return True
 
 
 # Головна сторінка
 @app.route('/')
 def home():
-    return render_template_string(HTML)
+    return render_template('index.html')
+
+
+# Маршрути для статичних файлів
+@app.route('/CSS/<path:filename>')
+def css_files(filename):
+    return send_from_directory('../Static/CSS', filename)
+
+
+@app.route('/JS/<path:filename>')
+def js_files(filename):
+    return send_from_directory('../Static/JS', filename)
 
 
 # API endpoints
@@ -215,48 +86,82 @@ def joke():
 
 @app.route('/api/calculate', methods=['POST'])
 def calculate():
-    data = request.json
-    num1 = data['num1']
-    num2 = data['num2']
-    result = num1 + num2
-    return jsonify({
-        "message": f"🧮 {num1} + {num2} = {result} ✨"
-    })
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"error": "Не надіслано даних"}), 400
+
+        num1 = data.get('num1')
+        num2 = data.get('num2')
+
+        if num1 is None or num2 is None:
+            return jsonify({"error": "Потрібно вказати обидва числа"}), 400
+
+        result = num1 + num2
+        return jsonify({
+            "message": f"🧮 {num1} + {num2} = {result} ✨"
+        })
+    except Exception as e:
+        return jsonify({"error": "Помилка в обчисленні"}), 400
 
 
 @app.route('/api/greeting', methods=['POST'])
-def greeting():
-    data = request.json
-    name = data['name']
-    age = data.get('age', 0)
+def getGreeting():
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"error": "Не надіслано даних"}), 400
 
-    if age > 0:
-        message = f"👋 Привіт, {name}! Тобі {age} років - це чудово! 🎈"
-    else:
-        message = f"👋 Привіт, {name}! Радий тебе бачити! 😊"
+        name = data.get('name')
+        if not name:
+            return jsonify({"error": "Не вказано ім'я"}), 400
 
-    return jsonify({"message": message})
+        age = data.get('age', 0)
+
+        if age > 0:
+            message = f"👋 Привіт, {name}! Тобі {age} років - це чудово! 🎈"
+        else:
+            message = f"👋 Привіт, {name}! Радий тебе бачити! 😊"
+
+        return jsonify({"message": message})
+    except Exception as e:
+        return jsonify({"error": "Помилка сервера"}), 500
 
 
 @app.route('/api/letters', methods=['POST'])
 def count_letters():
-    data = request.json
-    word = data['word']
-    count = len(word)
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"error": "Не надіслано даних"}), 400
 
-    if count == 1:
-        message = f"🔤 В слові '{word}' всього 1 буква!"
-    elif count < 5:
-        message = f"🔤 В слові '{word}' {count} букви - коротке слово!"
-    elif count < 10:
-        message = f"🔤 В слові '{word}' {count} букв - середнє слово!"
-    else:
-        message = f"🔤 Вау! В слові '{word}' аж {count} букв - довжелезне слово! 🤯"
+        word = data.get('word')
+        if not word:
+            return jsonify({"error": "Не вказано слово"}), 400
 
-    return jsonify({"message": message})
+        count = len(word)
+
+        if count == 1:
+            message = f"🔤 В слові '{word}' всього 1 буква!"
+        elif count < 5:
+            message = f"🔤 В слові '{word}' {count} букви - коротке слово!"
+        elif count < 10:
+            message = f"🔤 В слові '{word}' {count} букв - середнє слово!"
+        else:
+            message = f"🔤 Вау! В слові '{word}' аж {count} букв - довжелезне слово! 🤯"
+
+        return jsonify({"message": message})
+    except Exception as e:
+        return jsonify({"error": "Помилка сервера"}), 500
 
 
 if __name__ == '__main__':
     print("🚀 Запускаю дитячий сайт...")
-    print("🌐 Відкрий: http://localhost:5000")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+
+    # Перевіряємо файли перед запуском
+    if check_files():
+        print("✅ Всі файли на місці!")
+        print("🌐 Відкрий: http://localhost:5000")
+        app.run(debug=True, host='0.0.0.0', port=5000)
+    else:
+        print("❌ Помилка запуску: не всі файли знайдено")
